@@ -1,14 +1,23 @@
-import PropTypes from "prop-types";
+
+import { useSelector } from "react-redux";
+import { selectContacts } from "../../redux/contactsSlice";
+import { selectFilter } from "../../redux/filtersSlice";
 import Contact from "../Contact/Contact";
 import styles from "./ContactList.module.css";
 
-const ContactList = ({ contacts }) => {
-  console.log("Props in ContactList:", contacts);
+const ContactList = () => {
+  const contacts = useSelector(selectContacts); 
+  const filter = useSelector(selectFilter); 
+
+  
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
     <ul className={styles["contact-list"]}>
-      {contacts.length > 0 ? (
-        contacts.map(({ id, name, number }) => (
+      {filteredContacts.length > 0 ? (
+        filteredContacts.map(({ id, name, number }) => (
           <Contact key={id} id={id} name={name} number={number} />
         ))
       ) : (
@@ -16,16 +25,6 @@ const ContactList = ({ contacts }) => {
       )}
     </ul>
   );
-};
-
-ContactList.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ).isRequired,
 };
 
 export default ContactList;
