@@ -1,64 +1,39 @@
-import { useState, useEffect } from "react";
-import { nanoid } from "nanoid";
+import "./App.css";
+import { useSelector, useDispatch } from "react-redux";
+import { selectContacts, deleteContact } from "./redux/contactsSlice";
+import { selectFilter } from "./redux/filtersSlice";
+
 import ContactForm from "./components/ContactForm/ContactForm";
 import ContactList from "./components/ContactList/ContactList";
 import SearchBox from "./components/SearchBox/SearchBox";
-import "./App.css";
 
 const App = () => {
-  const [contacts, setContacts] = useState(() => {
-    const savedContacts = localStorage.getItem("contacts");
-    return savedContacts
-      ? JSON.parse(savedContacts)
-      : [
-          { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-          { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-          { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-          { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-        ];
-  });
+  const contacts = useSelector(selectContacts); // Получаем контакты из Redux
+  const filter = useSelector(selectFilter); // Получаем фильтр из Redux
+  const dispatch = useDispatch();
 
-  const [filter, setFilter] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  }, [contacts]);
-
-  const addContact = ({ name, number }) => {
-    console.log("Adding contact:", name, number);
-
-    if (contacts.some(contact => contact.name.toLowerCase() === name.toLowerCase())) {
-      alert(`${name} is already in contacts.`);
-      return;
-    }
-
-    const newContact = { id: nanoid(), name, number };
-    console.log("New contact created:", newContact);
-
-    setContacts(prevContacts => {
-      const updatedContacts = [...prevContacts, newContact];
-      console.log("Updated contacts:", updatedContacts);
-      return updatedContacts;
-    });
-  };
-
-  const deleteContact = id => {
-    setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id));
-  };
-
-  const handleSearch = e => setFilter(e.target.value);
-
-  const filteredContacts = contacts.filter(contact =>
+  // Фильтрация контактов
+  const filteredContacts = contacts.filter((contact) =>
     contact.name.toLowerCase().includes(filter.toLowerCase())
   );
+
+  console.log("Redux state - Contacts:", contacts);
+  console.log("Redux state - Filter:", filter);
+  console.log("Filtered Contacts (final):", filteredContacts);
+
+  const handleDeleteContact = (id) => {
+    dispatch(deleteContact(id)); // Удаляем контакт через Redux
+  };
 
   return (
     <div className="app-container">
       <h1>Phonebook</h1>
-      <ContactForm onSubmit={addContact} />
-      <h2>Contacts</h2>
-      <SearchBox filter={filter} onChange={handleSearch} />
-      <ContactList contacts={filteredContacts} onDeleteContact={deleteContact} />
+      <ContactForm />
+      <SearchBox />
+      <ContactList
+        contacts={filteredContacts}
+        onDeleteContact={handleDeleteContact} // Передаем функцию удаления
+      />
     </div>
   );
 };

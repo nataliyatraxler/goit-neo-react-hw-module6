@@ -1,31 +1,43 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addContact, selectContacts } from "../../redux/contactsSlice";
 import styles from "./ContactForm.module.css";
 
-const ContactForm = ({ onSubmit }) => {
+const ContactForm = () => {
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
   const [error, setError] = useState("");
 
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate name: allow letters, numbers, spaces; check length
+    if (
+      contacts.some(
+        (contact) => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      setError(`${name} is already in contacts.`);
+      return;
+    }
+
     if (name.length < 3) {
       setError("Name must be at least 3 characters long.");
       return;
     }
 
-    // Validate number format
     if (!/^\d{3}-\d{2}-\d{2}$/.test(number)) {
       setError("Number must be in the format 123-45-67.");
       return;
     }
 
-    // Clear errors and submit
-    setError("");
-    onSubmit({ name, number });
+    dispatch(addContact({ id: Date.now().toString(), name, number }));
+
     setName("");
     setNumber("");
+    setError("");
   };
 
   return (
@@ -36,6 +48,7 @@ const ContactForm = ({ onSubmit }) => {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Enter name"
           required
           className={styles.input}
         />
@@ -46,11 +59,11 @@ const ContactForm = ({ onSubmit }) => {
           type="text"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
+          placeholder="123-45-67"
           required
           className={styles.input}
         />
       </label>
-      {/* Display error message */}
       {error && <p className={styles["error-message"]}>{error}</p>}
       <button type="submit" className={styles.button}>
         Add Contact
